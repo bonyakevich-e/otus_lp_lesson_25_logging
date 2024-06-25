@@ -97,3 +97,41 @@ root@web:~# timedatectl set-timezone Europe/Moscow
 
 Тоже самое проделываем на втором сервере - log.
 
+4. Установим nginx на сервере web:
+```
+root@web:~# apt update && apt install -y nginx
+root@web:~# systemctl status nginx
+```
+5. На сервере log убеждаемся что установлен rsyslog:
+```
+root@log:~# apt list rsyslog
+Listing... Done
+rsyslog/jammy-updates,jammy-security,now 8.2112.0-2ubuntu2.2 amd64 [installed,automatic]
+```
+Все настройки rsyslog хранятся в файле /etc/rsyslog.conf. Для того, чтобы наш сервер мог принимать логи, нам необходимо внести следующие изменения в файл.
+
+Указываем rsyslog'у слушать на портах tcp/514 и udp/514. Раскомментируем строчки:
+```
+# provides UDP syslog reception
+module(load="imudp")
+input(type="imudp" port="514")
+
+# provides TCP syslog reception
+module(load="imtcp")
+input(type="imtcp" port="514")
+```
+В конец файла /etc/rsyslog.conf добавляем правила приёма сообщений от хостов. Данные параметры будут отправлять в папку /var/log/rsyslog логи, которые будут приходить от других серверов. Например, access-логи nginx от сервера web, будут идти в файл /var/log/rsyslog/web/nginx_access.log
+```
+#Add remote logs
+$template RemoteLogs, "/var/log/rsyslog/%HOSTNAME%/%PROGRAMNAME%.log"
+*.* ?RemoteLogs
+& ~
+```
+Перезапускаем службу rsyslog:
+```
+root@log:~# systemctl restart rsyslog
+```
+Проверяем что rsyslog прослушивает на портах 514:
+```
+root@log:~# ss -lntup
+```
