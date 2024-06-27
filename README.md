@@ -37,8 +37,8 @@ System clock synchronized: no
               NTP service: inactive
           RTC in local TZ: no
 ```
-Видим что NTP неактивно. Настриваем синхронизацию времени.
-Синхронизацию времени можно настроить с помощью ntpd, chrony и systemd-timesyncd. Первый считается устаревшим, второй используется в более сложных схемах чем простая синхронизация времени с удаленным ntp сервером. Поэтому будет настраивать systemd-timesyncd. 
+Видим что NTP неактивно. Настраиваем синхронизацию времени.
+Синхронизацию времени можно настроить с помощью ntpd, chrony и systemd-timesyncd. Первый считается устаревшим, второй используется в более сложных схемах чем простая синхронизация времени с удаленным ntp сервером. Поэтому будем настраивать systemd-timesyncd. 
 
 Вносим в /etc/systemd/timesyncd.conf список серверов, с которыми будем синхронизироваться:
 ```
@@ -51,7 +51,7 @@ NTP=0.ru.pool.ntp.org, 1.ru.pool.ntp.org 2.ru.pool.ntp.org 3.ru.pool.ntp.org
 ```console
 root@web:~# timedatectl set-ntp true
 ```
-После выполнения данной команды должна стартануть служба systemd-timesyncd:
+После выполнения данной команды должна запуститься служба systemd-timesyncd:
 ```console
 root@web:~# systemctl status systemd-timesyncd
 ● systemd-timesyncd.service - Network Time Synchronization
@@ -111,7 +111,7 @@ rsyslog/jammy-updates,jammy-security,now 8.2112.0-2ubuntu2.2 amd64 [installed,au
 Все настройки rsyslog хранятся в файле /etc/rsyslog.conf. Для того, чтобы наш сервер мог принимать логи, нам необходимо внести следующие изменения в файл.
 
 Указываем rsyslog'у слушать на портах tcp/514 и udp/514. Раскомментируем строчки:
-```
+```shell
 # provides UDP syslog reception
 module(load="imudp")
 input(type="imudp" port="514")
@@ -121,7 +121,7 @@ module(load="imtcp")
 input(type="imtcp" port="514")
 ```
 В конец файла /etc/rsyslog.conf добавляем правила приёма сообщений от хостов. Данные параметры будут отправлять в папку /var/log/rsyslog логи, которые будут приходить от других серверов. Например, access-логи nginx от сервера web, будут идти в файл /var/log/rsyslog/web/nginx_access.log
-```
+```shell
 #Add remote logs
 $template RemoteLogs, "/var/log/rsyslog/%HOSTNAME%/%PROGRAMNAME%.log"
 *.* ?RemoteLogs
@@ -172,7 +172,7 @@ root@web:~# mv /var/www/html/index.nginx-debian.html /var/www/
 7. Создадим еще одну виртуальную машину "third" и перенаправим все логи с неё на rsyslog серевер "log".
 
 На виртуальной машине "third" добавляем следующие строки в файл конфигурации /etc/rsyslog.conf:
-```
+```shell
 # Send everything to log server
 #
 *.* @@192.168.56.15:514
