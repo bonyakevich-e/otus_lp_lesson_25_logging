@@ -167,3 +167,17 @@ root@web:~# mv /var/www/html/index.nginx-debian.html /var/www/
 Проверяем еще раз логи:
 ![image](https://github.com/bonyakevich-e/otus_lp_lesson_25_logging/assets/114911797/7044f865-54d0-4511-b971-2f579c9c6a3e)
 
+7. Создадим еще одну виртуальную машину "third" и перенаправим все логи с неё на rsyslog серевер "log".
+
+На виртуальной машине "third" добавляем следующие строки в файл конфигурации /etc/rsyslog.conf:
+```
+# Send everything to log server
+#
+*.* @@192.168.56.15:514
+```
+Перезагружаем rsyslog:
+```
+root@third:~# systemctl restart rsyslog
+```
+Заходим на log сервер и убеждаемся в наличии логов с клиента "third":
+![image](https://github.com/bonyakevich-e/otus_lp_lesson_25_logging/assets/114911797/35c6247b-a2d7-4bc4-97b0-dc55d4a408ce)
