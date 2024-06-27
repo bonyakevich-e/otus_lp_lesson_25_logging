@@ -18,11 +18,11 @@
 
 #### Инструкция по выполнению
 1. Создаем виртуальные машины
-```
+```console
 $ vagrant up
 ```
 2. Заходим на web-сервер
-```
+```console
 $ vagrant ssh web
 $ sudo -i
 ```
@@ -48,11 +48,11 @@ NTP=0.ru.pool.ntp.org, 1.ru.pool.ntp.org 2.ru.pool.ntp.org 3.ru.pool.ntp.org
 ...
 ```
 Включаем синхронизацию:
-```
+```console
 root@web:~# timedatectl set-ntp true
 ```
 После выполнения данной команды должна стартануть служба systemd-timesyncd:
-```
+```console
 root@web:~# systemctl status systemd-timesyncd
 ● systemd-timesyncd.service - Network Time Synchronization
      Loaded: loaded (/lib/systemd/system/systemd-timesyncd.service; enabled; vendor preset: enabled)
@@ -72,7 +72,7 @@ Jun 25 17:46:24 web systemd-timesyncd[3186]: Timed out waiting for reply from 91
 Jun 25 17:46:25 web systemd-timesyncd[3186]: Initial synchronization to time server 91.206.16.3:123 (1.ru.pool.ntp.org).
 ```
 Проверить статус синхронизации:
-```
+```console
 root@web:~# timedatectl timesync-status
        Server: 91.206.16.3 (1.ru.pool.ntp.org)
 Poll interval: 1min 4s (min: 32s; max 34min 8s)
@@ -90,7 +90,7 @@ Root distance: 991us (max: 5s)
 
 ```
 Меняем временную зону:
-```
+```console
 root@web:~# timedatectl set-timezone Europe/Moscow
 ```
 Проверяем дату и время.
@@ -98,12 +98,12 @@ root@web:~# timedatectl set-timezone Europe/Moscow
 Тоже самое проделываем на втором сервере - log.
 
 4. Установим nginx на сервере web:
-```
+```console
 root@web:~# apt update && apt install -y nginx
 root@web:~# systemctl status nginx
 ```
 5. На сервере log убеждаемся что установлен rsyslog:
-```
+```console
 root@log:~# apt list rsyslog
 Listing... Done
 rsyslog/jammy-updates,jammy-security,now 8.2112.0-2ubuntu2.2 amd64 [installed,automatic]
@@ -128,13 +128,15 @@ $template RemoteLogs, "/var/log/rsyslog/%HOSTNAME%/%PROGRAMNAME%.log"
 & ~
 ```
 Перезапускаем службу rsyslog:
-```
+```console
 root@log:~# systemctl restart rsyslog
 ```
 Проверяем что rsyslog прослушивает на портах 514:
-```
+```console
 root@log:~# ss -lntup
 ```
+![image](https://github.com/bonyakevich-e/otus_lp_lesson_25_logging/assets/114911797/9ebc0a60-d282-4c9e-ac5a-d54461a8cedc)
+
 6. Далее настроим отправку логов с web-сервера. Заходим на web сервер.
 
 Находим в файле /etc/nginx/nginx.conf раздел с логами и приводим их к следующему виду:
@@ -150,7 +152,7 @@ Tag нужен для того, чтобы логи записывались в 
 По умолчанию, error-логи отправляют логи, которые имеют severity: error, crit, alert и emerg. Если требуется хранить или пересылать логи с другим severity, то это также можно указать в настройках nginx. 
 
 Перезапускаем nginx: 
-```
+```console
 root@web:~# systemctl restart nginx
 ```
 Попробуем несколько раз зайти по адресу http://192.168.56.10
@@ -159,7 +161,7 @@ root@web:~# systemctl restart nginx
 ![image](https://github.com/bonyakevich-e/otus_lp_lesson_25_logging/assets/114911797/e570051f-a759-4dfd-aa15-e0c868da3ff9)
 
 Поскольку наше приложение работает без ошибок, файл nginx_error.log не будет создан. Чтобы сгенерировать ошибку, можно переместить файл веб-страницы, который открывает nginx:
-```
+```console
 root@web:~# mv /var/www/html/index.nginx-debian.html /var/www/
 ```
 После этого мы получим 403 ошибку.
@@ -176,7 +178,7 @@ root@web:~# mv /var/www/html/index.nginx-debian.html /var/www/
 *.* @@192.168.56.15:514
 ```
 Перезагружаем rsyslog:
-```
+```console
 root@third:~# systemctl restart rsyslog
 ```
 Заходим на log сервер и убеждаемся в наличии логов с клиента "third":
